@@ -22,12 +22,12 @@ Stream streams[100];
 int StreamCount = 0;
 
 int SelectedColorIndex = 0;
-bool RandomColorMode = false;
+bool RandomColorMode = true;
 
 bool pause = false;
 
-float baseFontSize = 20.0f;
-float scaleFactor = 1.0f;
+float BaseFontSize = 20.0f;
+float ScaleFactor = 1.0f;
 
 /* Declarations */
 void InitStreams(void);
@@ -89,14 +89,14 @@ int main(void)
 void InitStreams(void)
 {
     // StreamCount = ScreenWidth / 20;
-    StreamCount = GetScreenWidth() / (int)(20 * scaleFactor);
+    StreamCount = GetScreenWidth() / (int)(20 * ScaleFactor);
     if (StreamCount > 100)
         StreamCount = 100;
 
     for (int i = 0; i < StreamCount; i++)
     {
         /* streams[i].x = i * 20; */
-        streams[i].x = i * (20 * scaleFactor);
+        streams[i].x = i * (20 * ScaleFactor);
         streams[i].y = (float)(rand() % ScreenHeight);
         streams[i].speed = (float)(rand() % 5 + 2);
         streams[i].length = rand() % 20 + 10;
@@ -121,7 +121,7 @@ void UpdateStreams(void)
 
             /* Reset stream if it goes off screen */
             /* if (streams[i].y - streams[i].length * 35 > ScreenHeight) */
-            if (streams[i].y - streams[i].length * (35 * scaleFactor) > ScreenHeight)
+            if (streams[i].y - streams[i].length * (35 * ScaleFactor) > ScreenHeight)
             {
                 streams[i].y = 0;
                 streams[i].length = rand() % 20 + 10;
@@ -250,8 +250,8 @@ void DrawGame(void)
                  DrawTextEx(font, text, (Vector2){streams[i].x, streams[i].y - j * 20},
                             baseFontSize, 0, color); */
                 char text[2] = {streams[i].characters[j], '\0'};
-                DrawTextEx(font, text, (Vector2){streams[i].x, streams[i].y - j * (20 * scaleFactor)},
-                           baseFontSize * scaleFactor, 0, color);
+                DrawTextEx(font, text, (Vector2){streams[i].x, streams[i].y - j * (20 * ScaleFactor)},
+                           BaseFontSize * ScaleFactor, 0, color);
             }
         }
     }
@@ -273,12 +273,12 @@ void HandleResize(void)
     ScreenHeight = GetScreenHeight();
 
     /* Calculate scale factor based on reference resolution (1500x900) */
-    scaleFactor = (float)ScreenWidth / 1500.0f;
-    if (scaleFactor < 0.5f) scaleFactor = 0.5f;
+    ScaleFactor = (float)ScreenWidth / 1500.0f;
+    if (ScaleFactor < 0.5f) ScaleFactor = 0.5f;
 
     /* Reload font with new size */
     UnloadFont(font);
-    font = LoadFontEx("resources/font.ttf", (int)(96 * scaleFactor), 0, 0);
+    font = LoadFontEx("resources/font.ttf", (int)(96 * ScaleFactor), 0, 0);
 
     InitStreams();
 }
