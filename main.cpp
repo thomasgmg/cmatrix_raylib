@@ -148,6 +148,11 @@ void UpdateGame(void)
         return;
     }
 
+    if (IsKeyPressed(KEY_F))
+    {
+        ToggleFullscreen();
+    }
+
     UpdateStreams();
 
     for (int i = 0; i < StreamCount; i++)
