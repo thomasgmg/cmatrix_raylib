@@ -1,8 +1,8 @@
 #include "raylib.h"
 #include <stdlib.h>
 
-int const ScreenWidth = 1500;
-int const ScreenHeight = 900;
+int ScreenWidth = 1500;
+int ScreenHeight = 900;
 
 Texture2D background;
 
@@ -26,15 +26,19 @@ bool RandomColorMode = false;
 
 bool pause = false;
 
+float baseFontSize = 20.0f;
+float scaleFactor = 1.0f;
+
 /* Declarations */
 void InitStreams(void);
 void UpdateStreams(void);
 void UpdateGame(void);
 void DrawGame(void);
+void HandleResize(void);
 
 int main(void)
 {
-    SetConfigFlags(FLAG_WINDOW_TRANSPARENT);
+    SetConfigFlags(FLAG_WINDOW_TRANSPARENT | FLAG_WINDOW_RESIZABLE);
     InitWindow(ScreenWidth, ScreenHeight, "cmatrix raylib");
 
     SetTargetFPS(60);
@@ -63,6 +67,10 @@ int main(void)
 
     while (!WindowShouldClose())
     {
+        if (IsWindowResized())
+        {
+            HandleResize();
+        }
         if (IsKeyPressed(KEY_SPACE))
         {
             pause = !pause;
@@ -73,16 +81,22 @@ int main(void)
     }
 
     UnloadFont(font);
+    UnloadTexture(background);
     CloseWindow();
     return 0;
 }
 
 void InitStreams(void)
 {
-    StreamCount = ScreenWidth / 20;
+    // StreamCount = ScreenWidth / 20;
+    StreamCount = GetScreenWidth() / (int)(20 * scaleFactor);
+    if (StreamCount > 100)
+        StreamCount = 100;
+
     for (int i = 0; i < StreamCount; i++)
     {
-        streams[i].x = i * 20;
+        /* streams[i].x = i * 20; */
+        streams[i].x = i * (20 * scaleFactor);
         streams[i].y = (float)(rand() % ScreenHeight);
         streams[i].speed = (float)(rand() % 5 + 2);
         streams[i].length = rand() % 20 + 10;
@@ -106,7 +120,8 @@ void UpdateStreams(void)
             streams[i].y += streams[i].speed;
 
             /* Reset stream if it goes off screen */
-            if (streams[i].y - streams[i].length * 35 > ScreenHeight)
+            /* if (streams[i].y - streams[i].length * 35 > ScreenHeight) */
+            if (streams[i].y - streams[i].length * (35 * scaleFactor) > ScreenHeight)
             {
                 streams[i].y = 0;
                 streams[i].length = rand() % 20 + 10;
@@ -230,9 +245,13 @@ void DrawGame(void)
                 int alpha = 255 - (j * 255 / streams[i].length);
                 Color color = {baseColor.r, baseColor.g, baseColor.b, (unsigned char)alpha};
 
-                /* Draw each character */
+                /* Draw each character
+                 char text[2] = {streams[i].characters[j], '\0'};
+                 DrawTextEx(font, text, (Vector2){streams[i].x, streams[i].y - j * 20},
+                            baseFontSize, 0, color); */
                 char text[2] = {streams[i].characters[j], '\0'};
-                DrawTextEx(font, text, (Vector2){streams[i].x, streams[i].y - j * 20}, 20, 0, color);
+                DrawTextEx(font, text, (Vector2){streams[i].x, streams[i].y - j * (20 * scaleFactor)},
+                           baseFontSize * scaleFactor, 0, color);
             }
         }
     }
@@ -246,4 +265,20 @@ void DrawGame(void)
     }
 
     EndDrawing();
+}
+
+void HandleResize(void)
+{
+    ScreenWidth = GetScreenWidth();
+    ScreenHeight = GetScreenHeight();
+
+    /* Calculate scale factor based on reference resolution (1500x900) */
+    scaleFactor = (float)ScreenWidth / 1500.0f;
+    if (scaleFactor < 0.5f) scaleFactor = 0.5f;
+
+    /* Reload font with new size */
+    UnloadFont(font);
+    font = LoadFontEx("resources/font.ttf", (int)(96 * scaleFactor), 0, 0);
+
+    InitStreams();
 }
