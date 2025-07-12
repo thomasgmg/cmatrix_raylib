@@ -4,6 +4,8 @@
 int const ScreenWidth = 1500;
 int const ScreenHeight = 900;
 
+Texture2D background;
+
 Font font;
 
 typedef struct Stream
@@ -38,6 +40,25 @@ int main(void)
     SetTargetFPS(60);
 
     font = LoadFontEx("resources/font.ttf", 96, 0, 0);
+
+    /* background = LoadTexture("resources/Alley.png");
+       background = LoadTexture("resources/Ascii.png");
+       background = LoadTexture("resources/Fantasy.jpg");
+       background = LoadTexture("resources/FinalFantasy.jpg");
+       background = LoadTexture("resources/galactic.jpg");
+       background = LoadTexture("resources/Hogwarts.jpg");
+       background = LoadTexture("resources/inzsky.png");
+       background = LoadTexture("resources/Landscape.jpg");
+       background = LoadTexture("resources/LordofRings1.jpg");
+       background = LoadTexture("resources/LordofRings2.jpg");
+       background = LoadTexture("resources/Monoke.jpg");
+       background = LoadTexture("resources/Realm.jpg");
+       background = LoadTexture("resources/samarkand.png");
+       background = LoadTexture("resources/stairway.jpg");
+       background = LoadTexture("resources/storm.jpg");
+       background = LoadTexture("resources/sumerupond.jpeg");
+       background = LoadTexture("resources/wallhaven.jpg"); */
+
     InitStreams();
 
     while (!WindowShouldClose())
@@ -179,6 +200,9 @@ void DrawGame(void)
 {
     BeginDrawing();
     ClearBackground(BLACK);
+
+    DrawTexturePro(background, {0, 0, (float)background.width, (float)background.height},
+                   {0, 0, (float)ScreenWidth, (float)ScreenHeight}, {0, 0}, 0.0f, WHITE);
 
     Color colors[] = {
         (Color){0, 100, 0, 255},     /* DARKGREEN */
