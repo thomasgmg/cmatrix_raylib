@@ -17,10 +17,12 @@ typedef struct Stream
 } Stream;
 
 Stream streams[100];
-int streamCount = 0;
+int StreamCount = 0;
 
-int selectedColorIndex = 0;
-bool randomColorMode = false;
+int SelectedColorIndex = 0;
+bool RandomColorMode = false;
+
+bool pause = false;
 
 /* Declarations */
 void InitStreams(void);
@@ -40,7 +42,11 @@ int main(void)
 
     while (!WindowShouldClose())
     {
-        UpdateStreams();
+        if (IsKeyPressed(KEY_SPACE))
+        {
+            pause = !pause;
+        }
+
         UpdateGame();
         DrawGame();
     }
@@ -52,8 +58,8 @@ int main(void)
 
 void InitStreams(void)
 {
-    streamCount = ScreenWidth / 20;
-    for (int i = 0; i < streamCount; i++)
+    StreamCount = ScreenWidth / 20;
+    for (int i = 0; i < StreamCount; i++)
     {
         streams[i].x = i * 20;
         streams[i].y = (float)(rand() % ScreenHeight);
@@ -71,7 +77,7 @@ void InitStreams(void)
 
 void UpdateStreams(void)
 {
-    for (int i = 0; i < streamCount; i++)
+    for (int i = 0; i < StreamCount; i++)
     {
         if (streams[i].active)
         {
@@ -101,7 +107,14 @@ void UpdateStreams(void)
 
 void UpdateGame(void)
 {
-    for (int i = 0; i < streamCount; i++)
+    if (pause)
+    {
+        return;
+    }
+
+    UpdateStreams();
+
+    for (int i = 0; i < StreamCount; i++)
     {
         if (streams[i].active)
         {
@@ -118,47 +131,47 @@ void UpdateGame(void)
 
     if (IsKeyPressed(KEY_ONE))
     {
-        selectedColorIndex = 0; /* DARKGREEN */
+        SelectedColorIndex = 0; /* DARKGREEN */
     }
     if (IsKeyPressed(KEY_TWO))
     {
-        selectedColorIndex = 1; /* GOLD */
+        SelectedColorIndex = 1; /* GOLD */
     }
     if (IsKeyPressed(KEY_THREE))
     {
-        selectedColorIndex = 2; /* GRAY */
+        SelectedColorIndex = 2; /* GRAY */
     }
     if (IsKeyPressed(KEY_FOUR))
     {
-        selectedColorIndex = 3; /* ORANGE */
+        SelectedColorIndex = 3; /* ORANGE */
     }
     if (IsKeyPressed(KEY_FIVE))
     {
-        selectedColorIndex = 4; /* MAROON */
+        SelectedColorIndex = 4; /* MAROON */
     }
     if (IsKeyPressed(KEY_SIX))
     {
-        selectedColorIndex = 5; /* SKYBLUE */
+        SelectedColorIndex = 5; /* SKYBLUE */
     }
     if (IsKeyPressed(KEY_SEVEN))
     {
-        selectedColorIndex = 6; /* DARKBLUE */
+        SelectedColorIndex = 6; /* DARKBLUE */
     }
     if (IsKeyPressed(KEY_EIGHT))
     {
-        selectedColorIndex = 7; /* VIOLET */
+        SelectedColorIndex = 7; /* VIOLET */
     }
     if (IsKeyPressed(KEY_NINE))
     {
-        selectedColorIndex = 8; /* DARKPURPLE */
+        SelectedColorIndex = 8; /* DARKPURPLE */
     }
     if (IsKeyPressed(KEY_ZERO))
     {
-        selectedColorIndex = 9; /* WHITE */
+        SelectedColorIndex = 9; /* WHITE */
     }
     if (IsKeyPressed(KEY_R))
     {
-        randomColorMode = !randomColorMode;
+        RandomColorMode = !RandomColorMode;
     }
 }
 
@@ -168,24 +181,24 @@ void DrawGame(void)
     ClearBackground(BLACK);
 
     Color colors[] = {
-        (Color){0,   100, 0,   0}, /* DARKGREEN */
-        (Color){218, 165, 32,  0}, /* GOLD */
-        (Color){128, 128, 128, 0}, /* GRAY */
-        (Color){255, 165, 0,   0}, /* ORANGE */
-        (Color){128, 0,   0,   0}, /* MAROON */
-        (Color){135, 206, 235, 0}, /* SKYBLUE */
-        (Color){0,   0,   139, 0}, /* DARKBLUE */
-        (Color){238, 130, 238, 0}, /* VIOLET */
-        (Color){139, 0,   139, 0}, /* DARKPURPLE */
-        (Color){255, 255, 255, 0}, /* WHITE */
+        (Color){0, 100, 0, 255},     /* DARKGREEN */
+        (Color){218, 165, 32, 255},  /* GOLD */
+        (Color){128, 128, 128, 255}, /* GRAY */
+        (Color){255, 165, 0, 255},   /* ORANGE */
+        (Color){128, 0, 0, 255},     /* MAROON */
+        (Color){135, 206, 235, 255}, /* SKYBLUE */
+        (Color){0, 0, 139, 255},     /* DARKBLUE */
+        (Color){238, 130, 238, 255}, /* VIOLET */
+        (Color){139, 0, 139, 255},   /* DARKPURPLE */
+        (Color){255, 255, 255, 255}, /* WHITE */
     };
     int colorCount = 10;
 
-    for (int i = 0; i < streamCount; i++)
+    for (int i = 0; i < StreamCount; i++)
     {
         if (streams[i].active)
         {
-            Color baseColor = randomColorMode ? colors[i % colorCount] : colors[selectedColorIndex];
+            Color baseColor = RandomColorMode ? colors[i % colorCount] : colors[SelectedColorIndex];
 
             for (int j = 0; j < streams[i].length; j++)
             {
@@ -198,6 +211,14 @@ void DrawGame(void)
                 DrawTextEx(font, text, (Vector2){streams[i].x, streams[i].y - j * 20}, 20, 0, color);
             }
         }
+    }
+
+    if (pause)
+    {
+        DrawTextEx(font, "PAUSE",
+                   (Vector2){(float)GetScreenWidth() / 2 - MeasureTextEx(font, "PAUSE", 30, 1).x / 2,
+                             (float)GetScreenHeight() / 2},
+                   30, 1, colors[SelectedColorIndex]);
     }
 
     EndDrawing();
