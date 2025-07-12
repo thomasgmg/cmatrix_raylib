@@ -178,7 +178,6 @@ void DrawGame(void)
         (Color){238, 130, 238, 0}, /* VIOLET */
         (Color){139, 0,   139, 0}, /* DARKPURPLE */
         (Color){255, 255, 255, 0}, /* WHITE */
-        (Color){0,  0,   0,   0}  /* WHITE */
     };
     int colorCount = 10;
 
