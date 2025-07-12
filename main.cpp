@@ -1,5 +1,7 @@
 #include "raylib.h"
+#include <cstdio>
 #include <stdlib.h>
+#include <string.h>
 
 int ScreenWidth = 1500;
 int ScreenHeight = 900;
@@ -36,14 +38,24 @@ void UpdateGame(void);
 void DrawGame(void);
 void HandleResize(void);
 
-int main(void)
+int main(int argc, char *argv[])
 {
+    bool fullscreen = false;
+    if (argc > 1)
+    {
+        char *arg1 = argv[1];
+        if (strcmp(arg1, "-f") == 0)
+        {
+            fullscreen = true;
+        }
+    }
+
     SetConfigFlags(FLAG_WINDOW_TRANSPARENT | FLAG_WINDOW_RESIZABLE);
     InitWindow(ScreenWidth, ScreenHeight, "cmatrix raylib");
 
     SetTargetFPS(60);
 
-    font = LoadFontEx("resources/font.ttf", 96, 0, 0);
+        font = LoadFontEx("/home/thomas/projects/cplusplus/matrix/resources/font.ttf", 96, 0, 0);
 
     /* background = LoadTexture("resources/Alley.png");
        background = LoadTexture("resources/Ascii.png");
@@ -64,6 +76,11 @@ int main(void)
        background = LoadTexture("resources/wallhaven.jpg"); */
 
     InitStreams();
+
+    if (fullscreen)
+    {
+        ToggleFullscreen();
+    }
 
     while (!WindowShouldClose())
     {
@@ -279,11 +296,12 @@ void HandleResize(void)
 
     /* Calculate scale factor based on reference resolution (1500x900) */
     ScaleFactor = (float)ScreenWidth / 1500.0f;
-    if (ScaleFactor < 0.5f) ScaleFactor = 0.5f;
+    if (ScaleFactor < 0.5f)
+        ScaleFactor = 0.5f;
 
     /* Reload font with new size */
     UnloadFont(font);
-    font = LoadFontEx("resources/font.ttf", (int)(96 * ScaleFactor), 0, 0);
+        font = LoadFontEx("/home/thomas/projects/cplusplus/matrix/resources/font.ttf", (int)(96 * ScaleFactor), 0, 0);
 
     InitStreams();
 }
