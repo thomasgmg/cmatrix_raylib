@@ -10,6 +10,20 @@ Texture2D background;
 
 Font font;
 
+Color const colors[] = {
+    (Color){0, 100, 0, 255},     /* DARKGREEN */
+    (Color){218, 165, 32, 255},  /* GOLD */
+    (Color){128, 128, 128, 255}, /* GRAY */
+    (Color){255, 165, 0, 255},   /* ORANGE */
+    (Color){128, 0, 0, 255},     /* MAROON */
+    (Color){135, 206, 235, 255}, /* SKYBLUE */
+    (Color){0, 0, 139, 255},     /* DARKBLUE */
+    (Color){238, 130, 238, 255}, /* VIOLET */
+    (Color){139, 0, 139, 255},   /* DARKPURPLE */
+    (Color){255, 255, 255, 255}, /* WHITE */
+};
+int const ColorCount = 10;
+
 typedef struct Stream
 {
     float x;
@@ -249,28 +263,15 @@ void DrawGame(void)
     BeginDrawing();
     ClearBackground(BLACK);
 
+    /* This draws the background if you uncomment one of the "LoadTexture" comments in main */
     DrawTexturePro(background, {0, 0, (float)background.width, (float)background.height},
                    {0, 0, (float)ScreenWidth, (float)ScreenHeight}, {0, 0}, 0.0f, WHITE);
-
-    Color colors[] = {
-        (Color){0, 100, 0, 255},     /* DARKGREEN */
-        (Color){218, 165, 32, 255},  /* GOLD */
-        (Color){128, 128, 128, 255}, /* GRAY */
-        (Color){255, 165, 0, 255},   /* ORANGE */
-        (Color){128, 0, 0, 255},     /* MAROON */
-        (Color){135, 206, 235, 255}, /* SKYBLUE */
-        (Color){0, 0, 139, 255},     /* DARKBLUE */
-        (Color){238, 130, 238, 255}, /* VIOLET */
-        (Color){139, 0, 139, 255},   /* DARKPURPLE */
-        (Color){255, 255, 255, 255}, /* WHITE */
-    };
-    int colorCount = 10;
 
     for (int i = 0; i < StreamCount; i++)
     {
         if (streams[i].active)
         {
-            Color baseColor = RandomColorMode ? colors[i % colorCount] : colors[SelectedColorIndex];
+            Color baseColor = RandomColorMode ? colors[i % ColorCount] : colors[SelectedColorIndex];
 
             for (int j = 0; j < streams[i].length; j++)
             {
@@ -288,7 +289,6 @@ void DrawGame(void)
             }
         }
     }
-
     if (pause)
     {
         DrawTextEx(font, "PAUSE",
