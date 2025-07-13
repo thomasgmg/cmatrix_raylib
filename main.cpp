@@ -34,6 +34,8 @@ float ScaleFactor = 1.0f;
 /* Declarations */
 void InitStreams(void);
 void UpdateStreams(void);
+void UpdateStreamColor(void);
+void UpdateStreamSpeed(void);
 void UpdateGame(void);
 void DrawGame(void);
 void HandleResize(void);
@@ -160,35 +162,8 @@ void UpdateStreams(void)
     }
 }
 
-void UpdateGame(void)
+void UpdateStreamColor(void)
 {
-    if (pause)
-    {
-        return;
-    }
-
-    if (IsKeyPressed(KEY_F))
-    {
-        ToggleFullscreen();
-    }
-
-    UpdateStreams();
-
-    for (int i = 0; i < StreamCount; i++)
-    {
-        if (streams[i].active)
-        {
-            if (IsKeyPressed(KEY_J))
-            {
-                streams[i].speed -= 2;
-            }
-            if (IsKeyPressed(KEY_K))
-            {
-                streams[i].speed += 2;
-            }
-        }
-    }
-
     if (IsKeyPressed(KEY_ONE))
     {
         SelectedColorIndex = 0; /* DARKGREEN */
@@ -233,6 +208,40 @@ void UpdateGame(void)
     {
         RandomColorMode = !RandomColorMode;
     }
+}
+
+void UpdateStreamSpeed(void)
+{
+    for (int i = 0; i < StreamCount; i++)
+    {
+        if (streams[i].active)
+        {
+            if (IsKeyPressed(KEY_J))
+            {
+                streams[i].speed -= 2;
+            }
+            if (IsKeyPressed(KEY_K))
+            {
+                streams[i].speed += 2;
+            }
+        }
+    }
+}
+
+void UpdateGame(void)
+{
+    if (pause)
+    {
+        return;
+    }
+    if (IsKeyPressed(KEY_F))
+    {
+        ToggleFullscreen();
+    }
+
+    UpdateStreams();
+    UpdateStreamColor();
+    UpdateStreamSpeed();
 }
 
 void DrawGame(void)
