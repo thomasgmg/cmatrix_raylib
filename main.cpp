@@ -3,12 +3,18 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* Chinese text that will be displayed, must be UTF-8 (save this code file as UTF-8) */
+static char *chineseText =
+    "いろはにほへとちりぬるをわかよたれそつねならむうゐのおくやまけふこえてあさきゆめみしゑひもせす";
+
 int ScreenWidth = 1500;
 int ScreenHeight = 900;
 
 Texture2D background;
 
 Font font;
+
+bool ChineseMode = false;
 
 Color const colors[] = {
     (Color){0, 100, 0, 255},     /* DARKGREEN */
@@ -30,6 +36,7 @@ typedef struct Stream
     float y;
     float speed;
     char characters[50];
+    int codepoints[50]; /* Store codepoints for Chinese characters */
     int length;
     bool active;
 } Stream;
@@ -71,7 +78,29 @@ int main(int argc, char *argv[])
 
     SetTargetFPS(60);
 
-    font = LoadFontEx("/home/thomas/projects/cplusplus/matrix/resources/font.ttf", 96, 0, 0);
+    /* Load codepoints for Chinese characters */
+    int codepointCount = 0;
+    int *codepoints = LoadCodepoints(chineseText, &codepointCount);
+
+    /* Add ASCII codepoints (32–126) */
+    int asciiCount = 95; /* 32 to 126 inclusive */
+    int totalCodepointCount = codepointCount + asciiCount;
+    int *allCodepoints = (int *)malloc(totalCodepointCount * sizeof(int));
+
+    /* Copy ASCII codepoints */
+    for (int i = 0; i < asciiCount; i++)
+    {
+        allCodepoints[i] = 32 + i; /* ASCII range 32–126 */
+    }
+    /* Copy Chinese codepoints */
+    memcpy(allCodepoints + asciiCount, codepoints, codepointCount * sizeof(int));
+    UnloadCodepoints(codepoints);
+
+    /* Load font with combined ASCII and Chinese codepoints */
+    font = LoadFontEx("/home/thomas/projects/cplusplus/matrix/resources/DotGothic16-Regular.ttf",
+                      (int)(96 * ScaleFactor), allCodepoints, totalCodepointCount);
+    SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
+    free(allCodepoints);
 
     /* background = LoadTexture("resources/Alley.png");
        background = LoadTexture("resources/Ascii.png");
@@ -108,6 +137,11 @@ int main(int argc, char *argv[])
         {
             pause = !pause;
         }
+        if (IsKeyPressed(KEY_M))
+        {
+            ChineseMode = !ChineseMode;
+            InitStreams();
+        }
 
         UpdateGame();
         DrawGame();
@@ -123,10 +157,10 @@ void InitStreams(void)
 {
     /* StreamCount = ScreenWidth / 20; */
     StreamCount = GetScreenWidth() / (int)(20 * ScaleFactor);
-    if (StreamCount > 100)
-    {
-        StreamCount = 100;
-    }
+
+    /* Load Chinese codepoints for character selection */
+    int codepointCount = 0;
+    int *codepoints = LoadCodepoints(chineseText, &codepointCount);
 
     for (int i = 0; i < StreamCount; i++)
     {
@@ -137,16 +171,35 @@ void InitStreams(void)
         streams[i].length = rand() % 20 + 10;
         streams[i].active = true;
 
-        /* Fill character array with random printable ASCII characters */
-        for (int j = 0; j < streams[i].length; j++)
+        if (ChineseMode)
         {
-            streams[i].characters[j] = (char)(rand() % 94 + 33); /* ASCII 33-126 */
+            /* Fill with Chinese characters (codepoints) */
+            for (int j = 0; j < streams[i].length; j++)
+            {
+                streams[i].codepoints[j] = codepoints[rand() % codepointCount];
+                streams[i].characters[j] = '\0'; /* Not used in Chinese mode */
+            }
+        }
+        else
+        {
+            /* Fill with random printable ASCII characters */
+            for (int j = 0; j < streams[i].length; j++)
+            {
+                streams[i].characters[j] = (char)(rand() % 94 + 33); /* ASCII 33-126 */
+                streams[i].codepoints[j] = 0;                        /* Not used in ASCII mode */
+            }
         }
     }
+
+    UnloadCodepoints(codepoints);
 }
 
 void UpdateStreams(void)
 {
+    /* Load Chinese codepoints for character updates */
+    int codepointCount = 0;
+    int *codepoints = LoadCodepoints(chineseText, &codepointCount);
+
     for (int i = 0; i < StreamCount; i++)
     {
         if (streams[i].active)
@@ -160,9 +213,21 @@ void UpdateStreams(void)
             {
                 streams[i].y = 0;
                 streams[i].length = rand() % 20 + 10;
-                for (int j = 0; j < streams[i].length; j++)
+                if (ChineseMode)
                 {
-                    streams[i].characters[j] = (char)(rand() % 94 + 33);
+                    for (int j = 0; j < streams[i].length; j++)
+                    {
+                        streams[i].codepoints[j] = codepoints[rand() % codepointCount];
+                        streams[i].characters[j] = '\0';
+                    }
+                }
+                else
+                {
+                    for (int j = 0; j < streams[i].length; j++)
+                    {
+                        streams[i].characters[j] = (char)(rand() % 94 + 33);
+                        streams[i].codepoints[j] = 0;
+                    }
                 }
             }
 
@@ -170,10 +235,21 @@ void UpdateStreams(void)
             if (rand() % 100 < 10)
             {
                 int charIndex = rand() % streams[i].length;
-                streams[i].characters[charIndex] = (char)(rand() % 94 + 33);
+                if (ChineseMode)
+                {
+                    streams[i].codepoints[charIndex] = codepoints[rand() % codepointCount];
+                    streams[i].characters[charIndex] = '\0';
+                }
+                else
+                {
+                    streams[i].characters[charIndex] = (char)(rand() % 94 + 33);
+                    streams[i].codepoints[charIndex] = 0;
+                }
             }
         }
     }
+
+    UnloadCodepoints(codepoints);
 }
 
 void UpdateStreamColor(void)
@@ -279,13 +355,28 @@ void DrawGame(void)
                 int alpha = 255 - (j * 255 / streams[i].length);
                 Color color = {baseColor.r, baseColor.g, baseColor.b, (unsigned char)alpha};
 
-                /* Draw each character
-                 char text[2] = {streams[i].characters[j], '\0'};
-                 DrawTextEx(font, text, (Vector2){streams[i].x, streams[i].y - j * 20},
-                            baseFontSize, 0, color); */
-                char text[2] = {streams[i].characters[j], '\0'};
-                DrawTextEx(font, text, (Vector2){streams[i].x, streams[i].y - j * (20 * ScaleFactor)},
-                           BaseFontSize * ScaleFactor, 0, color);
+                if (ChineseMode)
+                {
+                    /* Convert codepoint to UTF-8 string for drawing */
+                    int utf8Size = 0;
+                    int codepoint = streams[i].codepoints[j];
+                    if (codepoint >= 0 && codepoint <= 0x10FFFF) /* Validate codepoint */
+                    {
+                        const char *utf8Char = CodepointToUTF8(codepoint, &utf8Size);
+                        if (utf8Size > 0) /* Check for successful encoding */
+                        {
+                            DrawTextEx(font, utf8Char,
+                                       (Vector2){.x = streams[i].x, .y = streams[i].y - j * (20 * ScaleFactor)},
+                                       BaseFontSize * ScaleFactor, 0, color);
+                        }
+                    }
+                }
+                else
+                {
+                    char text[2] = {streams[i].characters[j], '\0'};
+                    DrawTextEx(font, text, (Vector2){.x = streams[i].x, .y = streams[i].y - j * (20 * ScaleFactor)},
+                               BaseFontSize * ScaleFactor, 0, color);
+                }
             }
         }
     }
@@ -308,9 +399,30 @@ void HandleResize(void)
     /* Calculate scale factor based on reference resolution (1500x900) */
     ScaleFactor = (float)ScreenWidth / 1500.0f;
 
-    /* Reload font with new size */
+    /* Reload font with Chinese and ASCII character support */
+    int codepointCount = 0;
+    int *codepoints = LoadCodepoints(chineseText, &codepointCount);
+
+    /* Add ASCII codepoints (32–126) */
+    int asciiCount = 95; /* 32 to 126 inclusive */
+    int totalCodepointCount = codepointCount + asciiCount;
+    int *allCodepoints = (int *)malloc(totalCodepointCount * sizeof(int));
+
+    /* Copy ASCII codepoints */
+    for (int i = 0; i < asciiCount; i++)
+    {
+        allCodepoints[i] = 32 + i; /* ASCII range 32–126 */
+    }
+    /* Copy Chinese codepoints */
+    memcpy(allCodepoints + asciiCount, codepoints, codepointCount * sizeof(int));
+    UnloadCodepoints(codepoints);
+
+    /* Reload font with combined ASCII and Chinese codepoints */
     UnloadFont(font);
-    font = LoadFontEx("/home/thomas/projects/cplusplus/matrix/resources/font.ttf", (int)(96 * ScaleFactor), 0, 0);
+    font = LoadFontEx("/home/thomas/projects/cplusplus/matrix/resources/DotGothic16-Regular.ttf",
+                      (int)(96 * ScaleFactor), allCodepoints, totalCodepointCount);
+    SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
+    free(allCodepoints);
 
     InitStreams();
 }
