@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 
     SetTargetFPS(60);
 
-        font = LoadFontEx("/home/thomas/projects/cplusplus/matrix/resources/font.ttf", 96, 0, 0);
+    font = LoadFontEx("/home/thomas/projects/cplusplus/matrix/resources/font.ttf", 96, 0, 0);
 
     /* background = LoadTexture("resources/Alley.png");
        background = LoadTexture("resources/Ascii.png");
@@ -105,10 +105,12 @@ int main(int argc, char *argv[])
 
 void InitStreams(void)
 {
-    // StreamCount = ScreenWidth / 20;
+    /* StreamCount = ScreenWidth / 20; */
     StreamCount = GetScreenWidth() / (int)(20 * ScaleFactor);
     if (StreamCount > 100)
+    {
         StreamCount = 100;
+    }
 
     for (int i = 0; i < StreamCount; i++)
     {
@@ -296,12 +298,10 @@ void HandleResize(void)
 
     /* Calculate scale factor based on reference resolution (1500x900) */
     ScaleFactor = (float)ScreenWidth / 1500.0f;
-    if (ScaleFactor < 0.5f)
-        ScaleFactor = 0.5f;
 
     /* Reload font with new size */
     UnloadFont(font);
-        font = LoadFontEx("/home/thomas/projects/cplusplus/matrix/resources/font.ttf", (int)(96 * ScaleFactor), 0, 0);
+    font = LoadFontEx("/home/thomas/projects/cplusplus/matrix/resources/font.ttf", (int)(96 * ScaleFactor), 0, 0);
 
     InitStreams();
 }
